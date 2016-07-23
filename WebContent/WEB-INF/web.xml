@@ -1,0 +1,21 @@
+<web-app>
+
+	<display-name>Pug java filter example</display-name>
+
+	<filter>
+		<filter-name>PugFilter</filter-name>
+		<filter-class>br.com.paulorec.pug.filter.PugFilter</filter-class>
+		<init-param>
+			<param-name>test-param</param-name>
+			<param-value>Initialization Paramter</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>PugFilter</filter-name>
+		<url-pattern>*.pug</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>PugFilter</filter-name>
+		<url-pattern>*.jade</url-pattern>
+	</filter-mapping>
+</web-app>
