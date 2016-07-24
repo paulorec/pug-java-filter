@@ -1,16 +1,20 @@
 package br.com.paulorec.pug.filter;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Date;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import de.neuland.jade4j.Jade4J;
 
 public class PugFilter implements Filter {
 
@@ -18,8 +22,6 @@ public class PugFilter implements Filter {
 
 	@Override
 	public void destroy() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -29,9 +31,15 @@ public class PugFilter implements Filter {
 		if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse))
 			throw new UnsupportedOperationException("only http requests supported");
 
-		String ipAddress = request.getRemoteAddr();
+		if (response.getCharacterEncoding() == null) {
+			response.setCharacterEncoding("UTF-8");
+		}
 
-		System.out.println("IP " + ipAddress + ", Time " + new Date().toString());
+		HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+
+		File file = fetchFile(httpServletRequest);
+
+		Jade4J.render(file.getAbsolutePath(), null);
 
 		chain.doFilter(request, response);
 	}
@@ -40,6 +48,38 @@ public class PugFilter implements Filter {
 	public void init(FilterConfig filterConfig) throws ServletException {
 
 		this.filterConfig = filterConfig;
+	}
+
+	private File fetchFile(HttpServletRequest request) throws FileNotFoundException {
+
+		ServletContext servletContext = filterConfig.getServletContext();
+
+		String requestURI = request.getRequestURI();
+
+		String requestPath = requestURI;
+
+		String contextPath = request.getContextPath();
+
+		if (!contextPath.equals("/")) {
+			requestPath = requestPath.substring(contextPath.length());
+		}
+
+		String realPath = servletContext.getRealPath(requestPath);
+
+		if (realPath == null) {
+			throw new FileNotFoundException(requestPath);
+		}
+
+		realPath = realPath.replace('\\', '/');
+
+		File file = new File(realPath);
+
+		if (!file.exists()) {
+			throw new FileNotFoundException(requestPath);
+
+		}
+
+		return file;
 	}
 
 }
